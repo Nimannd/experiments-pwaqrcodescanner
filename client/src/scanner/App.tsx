@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Scanner } from './Scanner';
 import { StatsPanel } from './StatsPanel';
 
@@ -56,7 +57,7 @@ export const App: React.FC = () => {
   return (
     <div style={{fontFamily:'system-ui, sans-serif', padding:'1rem', color:'#e6edf3', background:'#0d1117', minHeight:'100vh'}}>
   <h1 style={{marginTop:0}}>QR Scanner Experiment</h1>
-  <p style={{margin:'0.25rem 0 1rem'}}><a href={`${import.meta.env.BASE_URL}qrs`} style={{color:'#58a6ff'}}>View QR Assets Gallery →</a></p>
+  <p style={{margin:'0.25rem 0 1rem'}}><Link to="/qrs" style={{color:'#58a6ff'}}>View QR Assets Gallery →</Link></p>
       <p style={{maxWidth:600}}>Point your camera at QR codes. Decoded numeric values will appear below. This is an experimental build focusing on speed & accuracy using the <code>qr-scanner</code> library (WebAssembly ZXing).</p>
       <Scanner onCode={addCode} />
       <StatsPanel lastDuration={lastDuration} uniqueLocal={uniqueCount} totalLocal={codes.length} serverStats={stats} />

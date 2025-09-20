@@ -1,15 +1,19 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import { App } from './scanner/App';
 import { QrGallery } from './scanner/QrGallery';
 
 const el = document.getElementById('root');
 if (el) {
-  const base = (import.meta as any).env?.BASE_URL || '/';
-  const relPath = window.location.pathname.startsWith(base) ? window.location.pathname.slice(base.length - (base.endsWith('/')?1:0)) : window.location.pathname;
-  const normalized = relPath.replace(/^\//,'');
-  const Page = normalized === 'qrs' ? QrGallery : App;
-  createRoot(el).render(<Page />);
+  createRoot(el).render(
+    <HashRouter>
+      <Routes>
+        <Route path="/" element={<App />} />
+        <Route path="/qrs" element={<QrGallery />} />
+      </Routes>
+    </HashRouter>
+  );
 }
 
 if ('serviceWorker' in navigator) {

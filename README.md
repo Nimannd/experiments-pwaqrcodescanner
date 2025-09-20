@@ -72,6 +72,17 @@ Data is not persisted—server keeps a rolling window (trims after 5000, keeps l
 Navigate to `/qrs` to view a gallery of all QR (and other) images placed inside `client/src/assets` (png/jpg/jpeg/svg). The page auto-imports files using Vite's `import.meta.glob` pattern at build time. Useful for referencing known codes during manual accuracy checks.
 On GitHub Pages the link is generated with `import.meta.env.BASE_URL` so the real URL becomes `/<repoName>/qrs`.
 
+### Routing Approach (HashRouter)
+The app now uses `react-router-dom`'s `HashRouter` to avoid 404 issues on GitHub Pages (which serves only static files and does not rewrite unknown paths to `index.html`).
+
+Benefits:
+- Reliable deep links: `/#/qrs` always loads without extra 404 tricks.
+- Simplifies navigation vs. manual pathname parsing.
+- Allows easy expansion for future routes.
+
+Trade-off:
+- URLs include a `#` fragment. For pure path-style URLs you would need a custom redirect strategy or a different hosting setup.
+
 ## Performance & Accuracy Notes (Current)
 - Decode timing is naive (difference from processing start if available, else immediate). For stricter benchmarking, instrument raw frame timestamps.
 - UI local list now deduplicates; only first occurrence of a code is kept client‑side.
