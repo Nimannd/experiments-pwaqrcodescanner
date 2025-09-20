@@ -40,6 +40,7 @@ client/                   (React + Vite PWA)
 			App.tsx
 			Scanner.tsx
 			StatsPanel.tsx
+			QrGallery.tsx
 ```
 
 ## Running the Experiment (Windows PowerShell)
@@ -67,14 +68,19 @@ client/                   (React + Vite PWA)
 
 Data is not persisted—server keeps a rolling window (trims after 5000, keeps last 2000).
 
+## Additional Page: /qrs
+Navigate to `/qrs` to view a gallery of all QR (and other) images placed inside `client/src/assets` (png/jpg/jpeg/svg). The page auto-imports files using Vite's `import.meta.glob` pattern at build time. Useful for referencing known codes during manual accuracy checks.
+
 ## Performance & Accuracy Notes (Current)
 - Decode timing is naive (difference from processing start if available, else immediate). For stricter benchmarking, instrument raw frame timestamps.
-- UI limits recent list to 200 entries to keep DOM light.
+- UI local list now deduplicates; only first occurrence of a code is kept client‑side.
+- Local buffer size limit: 500 codes (adjust in `App.tsx`).
 - Average duration excludes scans with missing duration metadata.
 - No debounce; `maxScansPerSecond` set to 10 (tunable in `Scanner.tsx`).
+- Batch upload: user-triggered button sends all currently stored unique codes via `/api/scan-batch` then clears local list.
 
 ## Planned / Possible Improvements
-- Deduplicate consecutive identical QR codes optionally (config toggle).
+- Toggle to allow duplicates with per-code scan count.
 - Add checksum / expected pattern validation to flag anomalies.
 - Batch send scan events instead of per-scan POST for reduced overhead.
 - Include worker-based decoding timing vs main thread (compare libs).
@@ -87,6 +93,27 @@ Data is not persisted—server keeps a rolling window (trims after 5000, keeps l
 - In-memory server stats vanish on restart.
 - Not hardened for production (no auth, rate limiting, or input sanitization beyond presence check).
 - Accuracy evaluation needs labeled ground-truth dataset—currently manual.
+
+## Deployment (GitHub Pages)
+This project is configured to deploy the client (static PWA) to GitHub Pages using the workflow in `.github/workflows/deploy.yml`.
+
+Steps:
+1. Ensure repository name in `client/vite.config.js` (variable `repoName`) matches the GitHub repo.
+2. Push changes to `main` (workflow triggers automatically) or run manually via Actions tab.
+3. Pages URL will appear in the workflow summary (format: `https://<user>.github.io/<repoName>/`).
+4. Service worker + relative asset paths are adjusted for subdirectory base.
+
+Notes:
+- API calls are disabled on non-localhost origins (no backend on Pages). Upload button will still appear but won't succeed without a hosted API.
+- If you later host the Node server elsewhere, replace fetch endpoints with full URLs (e.g., `https://api.example.com/api/...`).
+- For custom domain, configure CNAME in repository Pages settings and optionally add it to `public/` if desired.
+
+Local production preview:
+```powershell
+npm --prefix client run build
+npx serve client/dist
+```
+Then visit the served path ensuring the base subdirectory is honored.
 
 ## License & Usage
 Experimental; integrate at your own risk. ZXing / qr-scanner licensing applies (Apache 2.0).
