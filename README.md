@@ -7,7 +7,7 @@ An experimental Progressive Web App (PWA) to evaluate browser‑based QR code sc
 | ------ | ------ | ----- |
 | Framework | React + Vite (TypeScript) | Fast dev cycle, minimal boilerplate vs Angular, easier experimental tweaking. |
 | QR Library | `qr-scanner` (WASM ZXing) | Wraps performant WebAssembly build of ZXing; good balance of speed & accuracy; supports camera listing & region highlighting. |
-| Server | Node.js (Express) | Simple in‑memory aggregation of scan stats; can be replaced by real backend later. |
+| Server | (Removed) | Now fully static; can optionally add remote API later if needed. |
 | Packaging | PWA (manifest + SW) | Offline shell + potential install prompt without native store. |
 
 ### Alternative Libraries Considered
@@ -18,15 +18,12 @@ An experimental Progressive Web App (PWA) to evaluate browser‑based QR code sc
 ## Core Requirements Mapping
 - Camera access → MediaDevices.getUserMedia via `qr-scanner`.
 - Open source / free decoder → ZXing WASM (`qr-scanner`).
-- Speed evaluation → Timestamps per decode; average duration aggregated server side.
+- Speed evaluation → Timestamps per decode; average duration could be aggregated client side (currently only last decode shown).
 - Accuracy emphasis → (Future) add optional checksum / numeric pattern validation & duplicate rate tracking.
 
 ## Project Structure
 ```
-package.json              (workspace + root scripts)
-server/                   (Express API for stats)
-	index.js
-	package.json
+package.json              (root scripts)
 client/                   (React + Vite PWA)
 	index.html
 	vite.config.js
@@ -48,25 +45,18 @@ client/                   (React + Vite PWA)
 	 ```powershell
 	 npm install
 	 ```
-2. Start dev servers (concurrent):
+2. Start dev server:
 	 ```powershell
 	 npm run dev
 	 ```
 	 - Client: http://localhost:5173
-	 - Server (API): http://localhost:5174
 3. Open the client URL in a modern browser (Chrome, Edge, Firefox). Grant camera permission.
 4. Point at QR codes. View:
 	 - Recent decoded list (top = newest)
 	 - Local stats: total / unique, last decode time (ms)
-	 - Server stats (aggregated across page lifetime only; in-memory, ephemeral)
 
-## Endpoints
-| Method | Path | Purpose |
-| ------ | ---- | ------- |
-| POST | `/api/scan-events` | Submit a scan `{ code, durationMs, ts }` |
-| GET | `/api/stats` | Returns `{ total, unique, avgDurationMs }` |
-
-Data is not persisted—server keeps a rolling window (trims after 5000, keeps last 2000).
+## (Former) Backend
+Originally an Express server provided in-memory aggregation endpoints. This has been removed to keep the project purely static for GitHub Pages hosting. If you want to restore or add a backend, reintroduce endpoints for batch uploads and stats, then point the client at that base URL.
 
 ## Additional Page: /qrs
 Navigate to `/qrs` to view a gallery of all QR (and other) images placed inside `client/src/assets` (png/jpg/jpeg/svg). The page auto-imports files using Vite's `import.meta.glob` pattern at build time. Useful for referencing known codes during manual accuracy checks.
@@ -89,7 +79,7 @@ Trade-off:
 - Local buffer size limit: 500 codes (adjust in `App.tsx`).
 - Average duration excludes scans with missing duration metadata.
 - No debounce; `maxScansPerSecond` set to 10 (tunable in `Scanner.tsx`).
-- Batch upload: user-triggered button sends all currently stored unique codes via `/api/scan-batch` then clears local list.
+- Clear button: removes all locally stored unique codes (no upload—static build has no backend).
 
 ## Planned / Possible Improvements
 - Toggle to allow duplicates with per-code scan count.
@@ -102,8 +92,8 @@ Trade-off:
 - Offline queue of scans when API unreachable.
 
 ## Limitations / Caveats
-- In-memory server stats vanish on restart.
-- Not hardened for production (no auth, rate limiting, or input sanitization beyond presence check).
+- No persistence; refreshing clears local state.
+- Not hardened for production (no auth, rate limiting, or deep input validation).
 - Accuracy evaluation needs labeled ground-truth dataset—currently manual.
 
 ## Deployment (GitHub Pages)
@@ -116,10 +106,9 @@ Steps:
 4. Service worker + relative asset paths are adjusted for subdirectory base.
 
 Notes:
-- API calls are disabled on non-localhost origins (no backend on Pages). Upload button will still appear but won't succeed without a hosted API.
-- A `404.html` is included to assist with deep links; it redirects to the root so basic manual navigation still works.
-- If you later host the Node server elsewhere, replace fetch endpoints with full URLs (e.g., `https://api.example.com/api/...`).
-- For custom domain, configure CNAME in repository Pages settings and optionally add it to `public/` if desired.
+- Fully static: no API calls are made.
+- A `404.html` is still present but `HashRouter` makes it largely unnecessary.
+- If you later host an API elsewhere, add fetch logic back in `App.tsx` (e.g., for batch uploads). Document the base URL and consider environment variables.
 
 Local production preview:
 ```powershell

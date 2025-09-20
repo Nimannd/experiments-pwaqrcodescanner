@@ -8,10 +8,7 @@ export default defineConfig(({ mode }) => ({
   base: mode === 'production' ? `/${repoName}/` : '/',
   plugins: [react()],
   server: {
-    port: 5173,
-    proxy: {
-      '/api': 'http://localhost:5174'
-    }
+    port: 5173
   },
   define: {
     __PAGES_ENV__: JSON.stringify(true)
