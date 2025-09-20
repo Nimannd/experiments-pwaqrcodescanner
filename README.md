@@ -70,6 +70,7 @@ Data is not persisted—server keeps a rolling window (trims after 5000, keeps l
 
 ## Additional Page: /qrs
 Navigate to `/qrs` to view a gallery of all QR (and other) images placed inside `client/src/assets` (png/jpg/jpeg/svg). The page auto-imports files using Vite's `import.meta.glob` pattern at build time. Useful for referencing known codes during manual accuracy checks.
+On GitHub Pages the link is generated with `import.meta.env.BASE_URL` so the real URL becomes `/<repoName>/qrs`.
 
 ## Performance & Accuracy Notes (Current)
 - Decode timing is naive (difference from processing start if available, else immediate). For stricter benchmarking, instrument raw frame timestamps.
@@ -105,6 +106,7 @@ Steps:
 
 Notes:
 - API calls are disabled on non-localhost origins (no backend on Pages). Upload button will still appear but won't succeed without a hosted API.
+- A `404.html` is included to assist with deep links; it redirects to the root so basic manual navigation still works.
 - If you later host the Node server elsewhere, replace fetch endpoints with full URLs (e.g., `https://api.example.com/api/...`).
 - For custom domain, configure CNAME in repository Pages settings and optionally add it to `public/` if desired.
 

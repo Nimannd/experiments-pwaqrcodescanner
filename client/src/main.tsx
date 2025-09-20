@@ -5,13 +5,16 @@ import { QrGallery } from './scanner/QrGallery';
 
 const el = document.getElementById('root');
 if (el) {
-  const path = window.location.pathname;
-  const Page = path === '/qrs' ? QrGallery : App;
+  const base = (import.meta as any).env?.BASE_URL || '/';
+  const relPath = window.location.pathname.startsWith(base) ? window.location.pathname.slice(base.length - (base.endsWith('/')?1:0)) : window.location.pathname;
+  const normalized = relPath.replace(/^\//,'');
+  const Page = normalized === 'qrs' ? QrGallery : App;
   createRoot(el).render(<Page />);
 }
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(err => console.warn('SW reg failed', err));
+    const base = (import.meta as any).env?.BASE_URL || '/';
+    navigator.serviceWorker.register(base + 'sw.js').catch(err => console.warn('SW reg failed', err));
   });
 }

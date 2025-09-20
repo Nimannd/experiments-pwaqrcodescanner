@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redirecting...</title>
+  <meta http-equiv="refresh" content="0; url=./" />
+  <script>
+    // GitHub Pages SPA redirect: rewrite to base index while preserving path in hash so app could parse if extended.
+    (function(){
+      var l = window.location;
+      var repoBase = l.pathname.split('/').slice(0,3).join('/') + '/';
+      if (!l.pathname.endsWith('index.html')) {
+        // Could store original path in sessionStorage if needed.
+      }
+    })();
+  </script>
+</head>
+<body>
+  Redirecting…
+</body>
+</html>
