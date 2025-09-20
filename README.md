@@ -80,6 +80,7 @@ Trade-off:
 - Average duration excludes scans with missing duration metadata.
 - No debounce; `maxScansPerSecond` set to 10 (tunable in `Scanner.tsx`).
 - Clear button: removes all locally stored unique codes (no upload—static build has no backend).
+- Flash toggle: If the active camera exposes torch capability, a Flash On/Off button appears (uses `QrScanner.hasFlash()` + `toggleFlash()`). Some desktop webcams and unsupported mobile browsers will simply hide the control.
 
 ## Planned / Possible Improvements
 - Toggle to allow duplicates with per-code scan count.

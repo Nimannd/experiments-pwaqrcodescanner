@@ -9,6 +9,8 @@ export const Scanner: React.FC<Props> = ({ onCode }) => {
   const [activeDeviceId, setActiveDeviceId] = useState<string | null>(null);
   const [devices, setDevices] = useState<QrScanner.Camera[]>([]);
   const [isRunning, setIsRunning] = useState(false);
+  const [hasFlash, setHasFlash] = useState(false);
+  const [flashOn, setFlashOn] = useState(false);
 
   useEffect(() => {
     QrScanner.listCameras(true).then(cams => {
@@ -21,12 +23,19 @@ export const Scanner: React.FC<Props> = ({ onCode }) => {
     if (!videoRef.current) return;
     if (!activeDeviceId) return;
     if (scannerRef.current) {
-      scannerRef.current.setCamera(activeDeviceId).catch(console.error);
+      // Switching camera
+      scannerRef.current.setCamera(activeDeviceId).then(async() => {
+        // Reset flash state on camera change
+        setFlashOn(false);
+        const support = await scannerRef.current?.hasFlash().catch(()=>false);
+        setHasFlash(!!support);
+      }).catch(console.error);
       return;
     }
     const qrScanner = new QrScanner(videoRef.current, result => {
+      // qr-scanner doesn't expose processingStart in types; just record instant duration as 0 for now.
       const now = performance.now();
-      onCode(result.data, now - (result?.scanRegion?.processingStart || now));
+      onCode(result.data, 0);
     }, {
       preferredCamera: activeDeviceId,
       highlightScanRegion: true,
@@ -34,7 +43,11 @@ export const Scanner: React.FC<Props> = ({ onCode }) => {
       maxScansPerSecond: 10
     });
     scannerRef.current = qrScanner;
-    qrScanner.start().then(()=> setIsRunning(true)).catch(err=> console.error('Failed to start', err));
+    qrScanner.start().then(async()=> {
+      setIsRunning(true);
+      const support = await qrScanner.hasFlash().catch(()=>false);
+      setHasFlash(!!support);
+    }).catch(err=> console.error('Failed to start', err));
     return () => { qrScanner.stop(); };
   }, [activeDeviceId, onCode]);
 
@@ -58,6 +71,26 @@ export const Scanner: React.FC<Props> = ({ onCode }) => {
             scannerRef.current.start().then(()=> setIsRunning(true));
           }
         }} style={{marginTop:8}}>{isRunning? 'Pause':'Start'}</button>
+        {hasFlash && (
+          <button
+            onClick={async()=>{
+              if (!scannerRef.current) return;
+              try {
+                // Toggle flash state
+                const newState = !flashOn;
+                await scannerRef.current.toggleFlash();
+                setFlashOn(newState);
+              } catch (e) {
+                console.error('Flash toggle failed', e);
+                // Re-check support in case capability changed
+                const support = await scannerRef.current.hasFlash().catch(()=>false);
+                setHasFlash(!!support);
+              }
+            }}
+            style={{marginTop:8, marginLeft:8, background: flashOn? '#d29922':'#30363d', color:'#fff'}}
+            title={flashOn? 'Turn flash off':'Turn flash on'}
+          >{flashOn? 'Flash On':'Flash Off'}</button>
+        )}
       </div>
     </div>
   );
